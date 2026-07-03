@@ -30,16 +30,12 @@ const surveyJson = {
             </div>
         </div>
     `,
-
     elements: [
-        // ---------------------------------------------------------
         // PANEL 1: VEHICLE INTAKE & DIAGNOSTICS
-        // ---------------------------------------------------------
         {
             type: "panel",
             name: "vehicle_intake_panel",
             title: "1. VEHICLE INTAKE & DIAGNOSTICS",
-            description: "Core vehicle routing and initial breakdown data.",
             width: "48%",
             elements: [
                 { type: "text", name: "vehicle_number", title: "🔢 VEHICLE NUMBER", placeholder: "e.g., TS09 EA 1111...", isRequired: true, maxLength: 20 },
@@ -53,16 +49,28 @@ const surveyJson = {
                 { type: "file", name: "vehicle_damage_photos", title: "📸 INWARD VEHICLE PHOTOS", allowCameraAccess: true, capture: "environment", storeDataAsText: true, maxSize: 5242880 }
             ]
         },
-        // ---------------------------------------------------------
+        // NEW: GENERAL INSPECTIONS (Multiple records allowed)
+        {
+            type: "paneldynamic",
+            name: "general_inspections",
+            title: "GENERAL INSPECTION LOGS",
+            description: "Log any vehicle inspections carried out OUTSIDE of the pre-delivery process.",
+            panelAddText: "+ Add Inspection Record",
+            panelRemoveText: "Remove Record",
+            width: "48%",
+            startWithNewLine: false,
+            templateElements: [
+                { type: "text", name: "insp_date", title: "📅 DATE", inputType: "date" },
+                { type: "comment", name: "insp_remarks", title: "📋 REMARKS", rows: 2 },
+                { type: "file", name: "insp_photo", title: "📸 INSPECTION PHOTO", storeDataAsText: true, allowCameraAccess: true }
+            ]
+        },
         // PANEL 2: WORKSHOP ALLOCATION & ESTIMATIONS
-        // ---------------------------------------------------------
         {
             type: "panel",
             name: "workshop_allocation_panel",
             title: "2. WORKSHOP ALLOCATION & ESTIMATES",
-            description: "Routing the vehicle to a vendor and securing financial approvals.",
             width: "48%",
-            startWithNewLine: false,
             elements: [
                 { type: "text", name: "workshop_name", title: "🏢 WORKSHOP NAME", placeholder: "Enter Authorized Workshop...", isRequired: true },
                 { type: "text", name: "allocation_date", title: "📅 ALLOCATION DATE", inputType: "date" },
@@ -76,57 +84,75 @@ const surveyJson = {
                 { type: "file", name: "approval_file", title: "📄 UPLOAD ESTIMATE/APPROVAL FILE", allowCameraAccess: true, capture: "environment", storeDataAsText: true, maxSize: 5242880 }
             ]
         },
-        // ---------------------------------------------------------
-        // PANEL 3: JOB LIFECYCLE & STATUS TRACKING
-        // ---------------------------------------------------------
+        // PANEL 3: JOB LIFECYCLE (Now with multiple jobs functionality)
         {
             type: "panel",
             name: "job_lifecycle_panel",
             title: "3. JOB LIFECYCLE & STATUS TRACKING",
-            description: "Update the operational timeline of the repair job.",
             width: "48%",
+            startWithNewLine: false,
             elements: [
                 { type: "radiogroup", name: "maintenance_status", title: "🔄 CURRENT JOB STATUS", choices: ["Inward", "Estimation", "Approval", "Repairing", "QC", "Ready", "Delivered", "Hold"], colCount: 2, isRequired: true },
                 { type: "text", name: "vehicle_status_date", title: "📅 STATUS UPDATE DATE", inputType: "date" },
-                { type: "comment", name: "daily_vehicle_remarks", title: "📋 DAILY VEHICLE REMARKS", placeholder: "Log daily workshop updates...", rows: 2 },
                 { type: "text", name: "rfd_date", title: "🚀 RFD DATE (READY FOR DELIVERY)", inputType: "date" },
                 { type: "text", name: "delivered_date", title: "🏁 DELIVERED DATE", inputType: "date" },
                 { type: "radiogroup", name: "final_status", title: "🏁 FINAL STATUS", choices: ["Completed", "Total Loss", "Scrapped"], colCount: 3 },
-                { type: "text", name: "tat", title: "⏱️ TAT (DAYS)", inputType: "number", placeholder: "Auto or Manual entry..." },
-                { type: "radiogroup", name: "pdi_status", title: "🟢 PDI STATUS (POST DELIVERY INSPECTION)", choices: ["Completed", "Pending"], colCount: 2, isRequired: true }
+                { type: "text", name: "tat", title: "⏱️ TAT (DAYS)", inputType: "number" },
+                { type: "radiogroup", name: "pdi_status", title: "🟢 PDI STATUS (POST DELIVERY INSPECTION)", choices: ["Completed", "Pending"], colCount: 2, isRequired: true },
+                // NEW: DYNAMIC JOB UPDATES
+                {
+                    type: "paneldynamic",
+                    name: "job_updates",
+                    title: "DAILY JOB UPDATES",
+                    description: "Add details at every stage (Job 1, Job 2, etc.)",
+                    panelAddText: "+ Add Job Update",
+                    panelRemoveText: "Remove Update",
+                    templateElements: [
+                        { type: "text", name: "update_date", title: "📅 DATE", inputType: "date" },
+                        { type: "comment", name: "update_remarks", title: "📋 STAGE REMARKS", rows: 2 },
+                        { type: "file", name: "update_photo", title: "📸 STAGE PHOTO", storeDataAsText: true, allowCameraAccess: true }
+                    ]
+                }
             ]
         },
-        // ---------------------------------------------------------
-        // PANEL 4: INVOICING & FINANCIAL SETTLEMENT
-        // ---------------------------------------------------------
+        // PANEL 4: INVOICING
         {
             type: "panel",
             name: "invoicing_panel",
             title: "4. INVOICING & FINANCIAL SETTLEMENT",
-            description: "Final workshop billing and finance team reconciliation.",
             width: "48%",
-            startWithNewLine: false,
             elements: [
-                { type: "text", name: "invoice_no", title: "🧾 INVOICE NUMBER", placeholder: "e.g., INV-9902..." },
-                { type: "text", name: "invoice_date", title: "📅 INVOICE DATE", inputType: "date" },
-                { type: "text", name: "invoice_amount", title: "💰 TOTAL INVOICE AMOUNT (₹)", inputType: "number", placeholder: "0", min: 0 },
                 { type: "text", name: "insurance_liability_discounts", title: "📉 INSURANCE LIABILITY / DISCOUNTS (₹)", inputType: "number", placeholder: "0", min: 0 },
                 { type: "text", name: "letzryd_payable", title: "💳 LETZRYD PAYABLE (₹)", inputType: "number", placeholder: "0", min: 0 },
                 { type: "radiogroup", name: "payment_status", title: "🚥 PAYMENT STATUS", choices: ["Pending", "Partial", "Paid"], colCount: 3 },
                 { type: "radiogroup", name: "type_of_payment", title: "💵 TYPE OF PAYMENT", choices: ["UPI", "NEFT/RTGS", "Credit/Ledger", "Cash"], colCount: 2 },
                 { type: "text", name: "utr_no", title: "🏦 UTR / TRANSACTION NO.", placeholder: "Bank reference id..." },
                 { type: "comment", name: "entry_remarks", title: "📝 FINANCIAL/ENTRY REMARKS", placeholder: "Closing notes for the ledger...", rows: 2 },
-                { type: "file", name: "invoice_file", title: "📄 UPLOAD INVOICE DOCUMENT", allowCameraAccess: true, capture: "environment", storeDataAsText: true, maxSize: 5242880 }
+                // NEW: MULTIPLE INVOICES
+                {
+                    type: "paneldynamic",
+                    name: "maintenance_invoices",
+                    title: "INVOICE RECORDS",
+                    description: "Add all invoices associated with this job.",
+                    panelAddText: "+ Add Invoice",
+                    panelRemoveText: "Remove Invoice",
+                    templateElements: [
+                        { type: "text", name: "inv_no", title: "🧾 INVOICE #" },
+                        { type: "text", name: "inv_date", title: "📅 INVOICE DATE", inputType: "date" },
+                        { type: "text", name: "inv_amount", title: "💰 AMOUNT", inputType: "number" },
+                        { type: "file", name: "inv_file", title: "📄 UPLOAD FILE", storeDataAsText: true, allowCameraAccess: true }
+                    ]
+                }
             ]
         },
-        // ---------------------------------------------------------
         // PANEL 5: POST-DELIVERY INSPECTION (PDI)
-        // ---------------------------------------------------------
         {
             type: "panel",
             name: "pdi_panel",
             title: "5. POST-DELIVERY INSPECTION (PDI) & INVENTORY",
-            description: "Mandatory visual and inventory verification before releasing the vehicle back to the fleet.",
+            description: "Mandatory visual and inventory verification during the delivery of the vehicle.",
+            width: "48%",
+            startWithNewLine: false,
             visibleIf: "{pdi_status} = 'Pending'",
             elements: [
                 {
@@ -378,30 +404,36 @@ function extractImage(val) {
 // Submit Handler (API POST/PUT Payload Builder)
 // ─────────────────────────────────────────────────────────
 survey.onComplete.add(function (sender) {
-    var d = sender.data;
+    var payload = JSON.parse(JSON.stringify(sender.data)); 
     
-    // Explicit array of image fields across all 5 panels
-    const photoFields = [
-        "vehicle_damage_photos", 
-        "approval_file", 
-        "invoice_file", 
-        "pdi_front_photo", 
-        "pdi_back_photo", 
-        "pdi_lh_photo", 
-        "pdi_rh_photo", 
-        "pdi_engine_photo"
-    ];
-
-    var payload = { ...d };
-    
-    // Process and overwrite photo fields safely into strings
-    photoFields.forEach(function(field) {
-        if(d[field] !== undefined) {
-            payload[field] = extractImage(d[field]);
-        } else {
-            payload[field] = null;
+    function extractBase64(val) {
+        if (!val) return null;
+        if (Array.isArray(val) && val.length > 0) {
+            return (typeof val[0] === "object" && val[0].content) ? val[0].content : String(val[0]);
         }
+        if (typeof val === "string" && val.startsWith("data:")) return val;
+        return null;
+    }
+
+    // Safely extract static file fields
+    const staticPhotoFields = [
+        "vehicle_damage_photos", "approval_file", "pdi_front_photo", 
+        "pdi_back_photo", "pdi_lh_photo", "pdi_rh_photo", "pdi_engine_photo"
+    ];
+    staticPhotoFields.forEach(field => {
+        if(payload[field]) payload[field] = extractBase64(payload[field]);
     });
+
+    // Safely extract dynamic panel file fields
+    if (payload.general_inspections) {
+        payload.general_inspections.forEach(item => { if (item.insp_photo) item.insp_photo = extractBase64(item.insp_photo); });
+    }
+    if (payload.job_updates) {
+        payload.job_updates.forEach(item => { if (item.update_photo) item.update_photo = extractBase64(item.update_photo); });
+    }
+    if (payload.maintenance_invoices) {
+        payload.maintenance_invoices.forEach(item => { if (item.inv_file) item.inv_file = extractBase64(item.inv_file); });
+    }
 
     var url = maintenanceRecordId ? ("/api/maintenance/" + maintenanceRecordId) : "/api/maintenance";
     var method = maintenanceRecordId ? "PUT" : "POST";
@@ -412,18 +444,16 @@ survey.onComplete.add(function (sender) {
         body: JSON.stringify(payload)
     })
     .then(function (r) {
-        if (!r.ok) {
-            return r.text().then(function (t) { throw new Error(t); });
-        }
+        if (!r.ok) return r.text().then(function (t) { throw new Error(t); });
         return r.json();
     })
     .then(function (result) {
         if (result.success) {
             maintenanceRecordId = null;
             updateFormBanner(false, null);
-            loadRegistryData(); // Instantly refresh the table in the background
+            loadRegistryData(); 
         } else {
-            throw new Error("Server processed request but returned success=false.");
+            throw new Error("Server returned success=false.");
         }
     })
     .catch(function (err) {
@@ -432,7 +462,3 @@ survey.onComplete.add(function (sender) {
         survey.clear(true, true);
     });
 });
-
-/* ═══════════════════════════════════════════════════════════
-   End of LetzRyd Maintenance Form Script
-═══════════════════════════════════════════════════════════ */

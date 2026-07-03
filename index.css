@@ -1366,3 +1366,30 @@ button[title="Take Photo"]:hover {
     color: #fff !important;
     border: none !important;
 }
+
+/* ─────────────────────────────────────────────────────────
+   DYNAMIC PANEL BUTTON STYLING (For Multiple Jobs/Invoices/Inspections)
+   ───────────────────────────────────────────────────────── */
+.sd-paneldynamic__add-btn {
+    background-color: var(--brand-blue) !important;
+    color: #ffffff !important;
+    padding: 8px 16px !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    font-family: 'DM Sans', sans-serif !important;
+    margin-top: 10px !important;
+    cursor: pointer !important;
+    border: none !important;
+}
+
+.sd-paneldynamic__remove-btn {
+    background-color: #fee2e2 !important;
+    color: #b91c1c !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    margin-top: 10px !important;
+    cursor: pointer !important;
+    border: 1px solid #f87171 !important;
+}

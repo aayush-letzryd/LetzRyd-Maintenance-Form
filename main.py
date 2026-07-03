@@ -1,4 +1,5 @@
 import os
+import json
 import psycopg2
 from psycopg2 import pool
 from fastapi import FastAPI, HTTPException
@@ -70,6 +71,7 @@ def startup_event():
                 vehicle_in_date VARCHAR(50),
                 initial_remarks TEXT,
                 vehicle_damage_photos TEXT,
+                general_inspections TEXT,
                 
                 -- Panel 2: Workshop Allocation & Estimates
                 workshop_name VARCHAR(255),
@@ -92,6 +94,7 @@ def startup_event():
                 final_status VARCHAR(50),
                 tat VARCHAR(50),
                 pdi_status VARCHAR(50),
+                job_updates TEXT,
                 
                 -- Panel 4: Invoicing & Financial Settlement
                 invoice_no VARCHAR(100),
@@ -104,6 +107,7 @@ def startup_event():
                 utr_no VARCHAR(100),
                 entry_remarks TEXT,
                 invoice_file TEXT,
+                maintenance_invoices TEXT,
                 
                 -- Panel 5: Post-Delivery Inspection (PDI)
                 pdi_front_photo TEXT,
@@ -156,6 +160,7 @@ class MaintenanceData(BaseModel):
     vehicle_in_date: str
     initial_remarks: Optional[str] = None
     vehicle_damage_photos: Optional[Any] = None
+    general_inspections: Optional[list] = None
     
     # Panel 2
     workshop_name: str
@@ -178,6 +183,7 @@ class MaintenanceData(BaseModel):
     final_status: Optional[str] = None
     tat: Optional[str] = None
     pdi_status: str
+    job_updates: Optional[list] = None
     
     # Panel 4
     invoice_no: Optional[str] = None
@@ -190,6 +196,7 @@ class MaintenanceData(BaseModel):
     utr_no: Optional[str] = None
     entry_remarks: Optional[str] = None
     invoice_file: Optional[Any] = None
+    maintenance_invoices: Optional[list] = None
     
     # Panel 5 (PDI)
     pdi_front_photo: Optional[Any] = None
@@ -270,7 +277,14 @@ def get_maintenance_job(id: int):
         r = cur.fetchone()
         if not r: raise HTTPException(status_code=404, detail="Record not found")
         cols = [d[0] for d in cur.description]
-        return dict(zip(cols, r))
+        data = dict(zip(cols, r))
+        
+        # Deserialize JSON arrays for the frontend SurveyJS to display
+        if data.get('general_inspections'): data['general_inspections'] = json.loads(data['general_inspections'])
+        if data.get('job_updates'): data['job_updates'] = json.loads(data['job_updates'])
+        if data.get('maintenance_invoices'): data['maintenance_invoices'] = json.loads(data['maintenance_invoices'])
+        
+        return data
     finally:
         postgreSQL_pool.putconn(conn)
 
@@ -284,27 +298,27 @@ def create_maintenance_job(data: MaintenanceData):
         cur = conn.cursor()
         cur.execute("""
             INSERT INTO maintenance_registry (
-                vehicle_number, city_name, model, vehicle_k_m_s, repair_type, vehicle_location, vehicle_in_date, initial_remarks, vehicle_damage_photos,
+                vehicle_number, city_name, model, vehicle_k_m_s, repair_type, vehicle_location, vehicle_in_date, initial_remarks, vehicle_damage_photos, general_inspections,
                 workshop_name, allocation_date, estimated_delivery_date, estimated_amount, insurance_claimed, claim_number, insurance_brokerage, approved_by, approval_date, approval_file,
-                maintenance_status, vehicle_status_date, daily_vehicle_remarks, rfd_date, delivered_date, final_status, tat, pdi_status,
-                invoice_no, invoice_date, invoice_amount, insurance_liability_discounts, letzryd_payable, payment_status, type_of_payment, utr_no, entry_remarks, invoice_file,
+                maintenance_status, vehicle_status_date, daily_vehicle_remarks, rfd_date, delivered_date, final_status, tat, pdi_status, job_updates,
+                invoice_no, invoice_date, invoice_amount, insurance_liability_discounts, letzryd_payable, payment_status, type_of_payment, utr_no, entry_remarks, invoice_file, maintenance_invoices,
                 pdi_front_photo, pdi_back_photo, pdi_lh_photo, pdi_rh_photo, pdi_engine_photo, engine_chassis_no, battery_sl_no, fast_tag, pdi_jack, pdi_jack_rod, pdi_spanner, pdi_parking_triangle, pdi_fire_extinguisher, pdi_seat_cover, pdi_floor_carpet, pdi_music_system, pdi_spare_wheel, pdi_key_quantity, pdi_rh_front_tyre, pdi_lh_front_tyre, pdi_rh_rear_tyre, pdi_lh_rear_tyre
             ) VALUES (
+                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
                 %s,%s,%s,%s,%s,%s,%s,%s,%s,
-                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
-                %s,%s,%s,%s,%s,%s,%s,%s,
-                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
                 %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
             ) RETURNING id;
         """, (
             # Panel 1
-            data.vehicle_number, data.city_name, data.model, data.vehicle_k_m_s, data.repair_type, data.vehicle_location, data.vehicle_in_date, data.initial_remarks, extract_image(data.vehicle_damage_photos),
+            data.vehicle_number, data.city_name, data.model, data.vehicle_k_m_s, data.repair_type, data.vehicle_location, data.vehicle_in_date, data.initial_remarks, extract_image(data.vehicle_damage_photos), json.dumps(data.general_inspections) if data.general_inspections else None,
             # Panel 2
             data.workshop_name, data.allocation_date, data.estimated_delivery_date, data.estimated_amount, data.insurance_claimed, data.claim_number, data.insurance_brokerage, data.approved_by, data.approval_date, extract_image(data.approval_file),
             # Panel 3
-            data.maintenance_status, data.vehicle_status_date, data.daily_vehicle_remarks, data.rfd_date, data.delivered_date, data.final_status, data.tat, data.pdi_status,
+            data.maintenance_status, data.vehicle_status_date, data.daily_vehicle_remarks, data.rfd_date, data.delivered_date, data.final_status, data.tat, data.pdi_status, json.dumps(data.job_updates) if data.job_updates else None,
             # Panel 4
-            data.invoice_no, data.invoice_date, data.invoice_amount, data.insurance_liability_discounts, data.letzryd_payable, data.payment_status, data.type_of_payment, data.utr_no, data.entry_remarks, extract_image(data.invoice_file),
+            data.invoice_no, data.invoice_date, data.invoice_amount, data.insurance_liability_discounts, data.letzryd_payable, data.payment_status, data.type_of_payment, data.utr_no, data.entry_remarks, extract_image(data.invoice_file), json.dumps(data.maintenance_invoices) if data.maintenance_invoices else None,
             # Panel 5
             extract_image(data.pdi_front_photo), extract_image(data.pdi_back_photo), extract_image(data.pdi_lh_photo), extract_image(data.pdi_rh_photo), extract_image(data.pdi_engine_photo), data.engine_chassis_no, data.battery_sl_no, data.fast_tag, data.pdi_jack, data.pdi_jack_rod, data.pdi_spanner, data.pdi_parking_triangle, data.pdi_fire_extinguisher, data.pdi_seat_cover, data.pdi_floor_carpet, data.pdi_music_system, data.pdi_spare_wheel, data.pdi_key_quantity, data.pdi_rh_front_tyre, data.pdi_lh_front_tyre, data.pdi_rh_rear_tyre, data.pdi_lh_rear_tyre
         ))
@@ -328,21 +342,21 @@ def update_maintenance_job(id: int, data: MaintenanceData):
         cur = conn.cursor()
         cur.execute("""
             UPDATE maintenance_registry SET 
-                vehicle_number=%s, city_name=%s, model=%s, vehicle_k_m_s=%s, repair_type=%s, vehicle_location=%s, vehicle_in_date=%s, initial_remarks=%s, vehicle_damage_photos=%s,
+                vehicle_number=%s, city_name=%s, model=%s, vehicle_k_m_s=%s, repair_type=%s, vehicle_location=%s, vehicle_in_date=%s, initial_remarks=%s, vehicle_damage_photos=%s, general_inspections=%s,
                 workshop_name=%s, allocation_date=%s, estimated_delivery_date=%s, estimated_amount=%s, insurance_claimed=%s, claim_number=%s, insurance_brokerage=%s, approved_by=%s, approval_date=%s, approval_file=%s,
-                maintenance_status=%s, vehicle_status_date=%s, daily_vehicle_remarks=%s, rfd_date=%s, delivered_date=%s, final_status=%s, tat=%s, pdi_status=%s,
-                invoice_no=%s, invoice_date=%s, invoice_amount=%s, insurance_liability_discounts=%s, letzryd_payable=%s, payment_status=%s, type_of_payment=%s, utr_no=%s, entry_remarks=%s, invoice_file=%s,
+                maintenance_status=%s, vehicle_status_date=%s, daily_vehicle_remarks=%s, rfd_date=%s, delivered_date=%s, final_status=%s, tat=%s, pdi_status=%s, job_updates=%s,
+                invoice_no=%s, invoice_date=%s, invoice_amount=%s, insurance_liability_discounts=%s, letzryd_payable=%s, payment_status=%s, type_of_payment=%s, utr_no=%s, entry_remarks=%s, invoice_file=%s, maintenance_invoices=%s,
                 pdi_front_photo=%s, pdi_back_photo=%s, pdi_lh_photo=%s, pdi_rh_photo=%s, pdi_engine_photo=%s, engine_chassis_no=%s, battery_sl_no=%s, fast_tag=%s, pdi_jack=%s, pdi_jack_rod=%s, pdi_spanner=%s, pdi_parking_triangle=%s, pdi_fire_extinguisher=%s, pdi_seat_cover=%s, pdi_floor_carpet=%s, pdi_music_system=%s, pdi_spare_wheel=%s, pdi_key_quantity=%s, pdi_rh_front_tyre=%s, pdi_lh_front_tyre=%s, pdi_rh_rear_tyre=%s, pdi_lh_rear_tyre=%s
             WHERE id = %s;
         """, (
             # Panel 1
-            data.vehicle_number, data.city_name, data.model, data.vehicle_k_m_s, data.repair_type, data.vehicle_location, data.vehicle_in_date, data.initial_remarks, extract_image(data.vehicle_damage_photos),
+            data.vehicle_number, data.city_name, data.model, data.vehicle_k_m_s, data.repair_type, data.vehicle_location, data.vehicle_in_date, data.initial_remarks, extract_image(data.vehicle_damage_photos), json.dumps(data.general_inspections) if data.general_inspections else None,
             # Panel 2
             data.workshop_name, data.allocation_date, data.estimated_delivery_date, data.estimated_amount, data.insurance_claimed, data.claim_number, data.insurance_brokerage, data.approved_by, data.approval_date, extract_image(data.approval_file),
             # Panel 3
-            data.maintenance_status, data.vehicle_status_date, data.daily_vehicle_remarks, data.rfd_date, data.delivered_date, data.final_status, data.tat, data.pdi_status,
+            data.maintenance_status, data.vehicle_status_date, data.daily_vehicle_remarks, data.rfd_date, data.delivered_date, data.final_status, data.tat, data.pdi_status, json.dumps(data.job_updates) if data.job_updates else None,
             # Panel 4
-            data.invoice_no, data.invoice_date, data.invoice_amount, data.insurance_liability_discounts, data.letzryd_payable, data.payment_status, data.type_of_payment, data.utr_no, data.entry_remarks, extract_image(data.invoice_file),
+            data.invoice_no, data.invoice_date, data.invoice_amount, data.insurance_liability_discounts, data.letzryd_payable, data.payment_status, data.type_of_payment, data.utr_no, data.entry_remarks, extract_image(data.invoice_file), json.dumps(data.maintenance_invoices) if data.maintenance_invoices else None,
             # Panel 5
             extract_image(data.pdi_front_photo), extract_image(data.pdi_back_photo), extract_image(data.pdi_lh_photo), extract_image(data.pdi_rh_photo), extract_image(data.pdi_engine_photo), data.engine_chassis_no, data.battery_sl_no, data.fast_tag, data.pdi_jack, data.pdi_jack_rod, data.pdi_spanner, data.pdi_parking_triangle, data.pdi_fire_extinguisher, data.pdi_seat_cover, data.pdi_floor_carpet, data.pdi_music_system, data.pdi_spare_wheel, data.pdi_key_quantity, data.pdi_rh_front_tyre, data.pdi_lh_front_tyre, data.pdi_rh_rear_tyre, data.pdi_lh_rear_tyre,
             # ID condition
