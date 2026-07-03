@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="LetzRyd Vehicle Maintenance & Workshop Registry Portal">
+    <title>LetzRyd · Maintenance Portal</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Poppins:wght@600;700;800&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link href="https://unpkg.com/survey-jquery/defaultV2.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/survey-jquery/survey.jquery.min.js"></script>
+
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<header class="lr-header">
+    <div class="lr-header-inner">
+        <div class="lr-header-brand">
+            <img src="https://letzryd.com/replica-assets/letzryd-long-png-logo-Aq2o3DNOw1i2kBMB-7ab04eaa76.png"
+                 alt="LetzRyd Logo" class="lr-logo"
+                 id="logoHome" onclick="showTab('registry')" style="cursor:pointer">
+            <span class="lr-h-divider"></span>
+            <span class="lr-portal-name">Partner Maintenance Portal</span>
+        </div>
+
+        <div class="lr-header-right">
+            <div class="lr-tabs">
+                <button class="lr-tab" id="nav-form" onclick="showTab('form')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                    Maintenance Form
+                </button>
+                <button class="lr-tab lr-tab--active" id="nav-registry" onclick="showTab('registry')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    Maintenance Registry
+                </button>
+            </div>
+            
+            <div class="lr-header-user" style="margin-left: 1.5rem;">
+                <span class="lr-header-user-label">FLEET MAINTENANCE OPERATIONS</span>
+                <span class="lr-header-user-email">Workshop Service Desk</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="lr-main">
+    
+    <div id="tab-registry" style="display: block;">
+        <div class="lr-records-card">
+            <div class="lr-rc-header">
+                <div class="lr-rc-header-left">
+                    <h2 class="lr-rc-title">Maintenance & Workshop Registry</h2>
+                    <p class="lr-rc-desc">Live audit log of all fleet maintenance jobs, workshop allocations, and invoice statuses.</p>
+                </div>
+                <div class="lr-rc-header-actions">
+                    <button class="lr-btn lr-btn-outline" onclick="exportTableToCSV()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        Export CSV
+                    </button>
+                    <button class="lr-btn lr-btn-green" onclick="showTab('form')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Add Job Entry
+                    </button>
+                </div>
+            </div>
+
+            <div class="lr-table-wrap">
+                <table class="lr-table">
+                    <thead>
+                        <tr>
+                            <th>Job ID</th>
+                            <th>Vehicle IN Date</th>
+                            <th>Vehicle & Workshop</th>
+                            <th>Repair Type</th>
+                            <th>Estimated Cost</th>
+                            <th>Lifecycle Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="registryTableBody">
+                        <tr>
+                            <td class="font-bold text-gray-900">#2005</td>
+                            <td><div class="text-gray-900 font-bold">2026-07-03</div><div class="text-xs text-gray-500">10:30 AM</div></td>
+                            <td><div class="text-brand-blue font-bold">TS09 EA 1111</div><div class="text-xs text-gray-500">Workshop: ZoomRx Garage</div></td>
+                            <td><div class="text-gray-900">General Service</div><div class="text-xs text-gray-500">Koramangala, BLR</div></td>
+                            <td><div class="text-red font-bold">₹ 4,500</div><div class="text-xs text-gray-500">Pending Invoice</div></td>
+                            <td><span class="lr-status lr-status-yellow">Repairing</span></td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold text-gray-900">#2004</td>
+                            <td><div class="text-gray-900 font-bold">2026-07-02</div><div class="text-xs text-gray-500">02:15 PM</div></td>
+                            <td><div class="text-brand-blue font-bold">MH02 IJ 1234</div><div class="text-xs text-gray-500">Workshop: IAC Motors</div></td>
+                            <td><div class="text-gray-900">Accidental</div><div class="text-xs text-gray-500">Andheri West, MUM</div></td>
+                            <td><div class="text-gray-900 font-bold">₹ 35,000</div><div class="text-xs text-gray-500">Insurance Claimed</div></td>
+                            <td><span class="lr-status lr-status-yellow">Approval</span></td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold text-gray-900">#2003</td>
+                            <td><div class="text-gray-900 font-bold">2026-07-01</div><div class="text-xs text-gray-500">11:45 AM</div></td>
+                            <td><div class="text-brand-blue font-bold">DL02 IJ 7777</div><div class="text-xs text-gray-500">Workshop: Zypp Auto Service</div></td>
+                            <td><div class="text-gray-900">Running Repair</div><div class="text-xs text-gray-500">Connaught Place, DEL</div></td>
+                            <td><div class="text-red font-bold">₹ 1,200</div><div class="text-xs text-gray-500">PDI Pending</div></td>
+                            <td><span class="lr-status lr-status-green">Ready</span></td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold text-gray-900">#2002</td>
+                            <td><div class="text-gray-900 font-bold">2026-06-29</div><div class="text-xs text-gray-500">09:30 AM</div></td>
+                            <td><div class="text-brand-blue font-bold">TN07 EF 7777</div><div class="text-xs text-gray-500">Workshop: BLEND Repairs</div></td>
+                            <td><div class="text-gray-900">Breakdown</div><div class="text-xs text-gray-500">T-Nagar, CHN</div></td>
+                            <td><div class="text-gray-900 font-bold">₹ 8,500</div><div class="text-xs text-gray-500">Paid</div></td>
+                            <td><span class="lr-status lr-status-yellow">QC</span></td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold text-gray-900">#2001</td>
+                            <td><div class="text-gray-900 font-bold">2026-06-25</div><div class="text-xs text-gray-500">04:20 PM</div></td>
+                            <td><div class="text-brand-blue font-bold">TS09 EA 9999</div><div class="text-xs text-gray-500">Workshop: LetzRyd Direct Hub</div></td>
+                            <td><div class="text-gray-900">General Service</div><div class="text-xs text-gray-500">Hitech City, HYD</div></td>
+                            <td><div class="text-red font-bold">₹ 3,500</div><div class="text-xs text-gray-500">Paid</div></td>
+                            <td><span class="lr-status lr-status-green">Delivered</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="lr-table-footer">
+                <span>Showing 5 of 5 recent maintenance jobs</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-form" style="display: none;">
+        <div class="lr-form-card">
+            <div class="lr-form-card-header">
+                <div class="lr-fch-overlay"></div>
+                <div class="lr-fch-inner">
+                    <div class="lr-fch-left">
+                        <div class="lr-fch-logo-row">
+                            <span class="lr-fch-badge-desk" style="background:#034626; color: #07a39b; border-color: #012920;">VEHICLE MAINTENANCE</span>
+                            <span class="lr-fch-portal-lbl">• Fleet Servicing</span>
+                        </div>
+                        <h2 class="lr-fch-title">Maintenance Form</h2>
+                        <p class="lr-fch-desc">Log vehicle inwards, workshop allocations, job lifecycles, PDI, and final invoices.</p>
+                    </div>
+
+                    <div class="lr-fch-right">
+                        <div class="lr-fch-search-box">
+                            <input type="text" id="maintenanceIdInput" placeholder="🔍 Edit existing Job (ID)..." class="lr-search-input">
+                            <button onclick="retrieveMaintenanceRecord()" class="lr-search-btn">Retrieve</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="surveyElement"></div>
+
+        </div>
+    </div>
+</main>
+
+<footer class="lr-footer">
+    <div class="lr-footer-inner">
+        <div class="lr-footer-left">
+            <img src="https://letzryd.com/replica-assets/letzryd-long-png-logo-Aq2o3DNOw1i2kBMB-7ab04eaa76.png"
+                 alt="LetzRyd" class="lr-footer-logo">
+            <span class="lr-footer-brand-text">LetzRyd Fleet Maintenance Operations</span>
+        </div>
+        <div class="lr-footer-contacts">
+            <span class="lr-footer-contact">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                maintenance@letzryd.com
+            </span>
+            <span class="lr-footer-contact">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.37 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.9a16 16 0 0 0 6 6l.93-.93a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                +91 90352 39090
+            </span>
+        </div>
+        <div class="lr-footer-copy">LetzRyd © Copyright 2026 | All Rights Reserved</div>
+    </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
